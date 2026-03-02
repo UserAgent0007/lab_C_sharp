@@ -1,36 +1,58 @@
 ﻿using lab1;
+using System.Security.Cryptography;
 
-Student[][] JaggedArray(int rows, int totalElements, Random rand)
+Student[][] JaggedArray(int totalElements)
 {
-    Student[][] array = new Student[rows][];
-    int baseSize = totalElements / rows;
-    int remainder = totalElements % rows;
+    
+    int countRows = 0;
+    int currentElements = 0;
+    int right = 0;
+    int delta = 0;
 
-    int[] rowSizes = new int[rows];
-    for (int i = 0; i < rows; i++) rowSizes[i] = baseSize;
-    for (int i = 0; i < remainder; i++) rowSizes[i]++;
-
-    for (int k = 0; k < 1000; k++)
+    while (currentElements < totalElements)
     {
-        int from = rand.Next(rows);
-        int to = rand.Next(rows);
-        if (from != to && rowSizes[from] > 1 && rowSizes[to] < totalElements / 2)
+        right += 1;
+
+        delta = 0;
+
+        for (int i = 0; i < right; i++)
         {
-            rowSizes[from]--;
-            rowSizes[to]++;
+            currentElements++;
+            delta++;
+
+            if (currentElements == totalElements)
+            {
+                break;
+            }
         }
+
+        countRows++;
     }
 
-    for (int i = 0; i < rows; i++)
+    Student[][] array = new Student[countRows][];
+
+    for (int i = 0; i < countRows - 1; i++)
     {
-        array[i] = new Student[rowSizes[i]];
-        for (int j = 0; j < rowSizes[i]; j++)
+        array[i] = new Student[i + 1];
+
+        for (int j = 0; j < i + 1; j++)
         {
             array[i][j] = new Student();
         }
-        
     }
+
+    if (delta != 0)
+    {
+        array[countRows - 1] = new Student[delta];
+
+        for (int i =0; i < delta; i++)
+        {
+            array[countRows - 1][i] = new Student();
+        }
+    }
+
     return array;
+    
 }
 
 Student st1 = new Student();
@@ -49,10 +71,10 @@ Console.WriteLine(st1[Education.SecondEducation]);
 Console.WriteLine("\n");
 Student st2 = new Student()
 {
-    education = Education.Master,
-    exams = new List<Exam> { new Exam(), new Exam(), new Exam(), new Exam() },
-    group = 301,
-    person = new Person()
+    Education = Education.Master,
+    Exams = new Exam[] { new Exam(), new Exam(), new Exam(), new Exam() },
+    Group = 301,
+    Person = new Person()
 };
 
 Console.WriteLine(st2);
@@ -60,7 +82,8 @@ Console.WriteLine(st2);
 // ===
 Console.WriteLine("\n");
 
-st2.AddExams(new Exam[] { new Exam(), new Exam(), new Exam(), new Exam() });
+//Student st3 = new Student();
+st2.AddExams(new Exam[] { new Exam(), new Exam(), new Exam() });
 
 Console.WriteLine(st2);
 
@@ -88,13 +111,13 @@ for (int i = 0; i < nRows; i++)
     }
 }
 
-Student[][] stud_jagged = JaggedArray(nRows, total, new Random());
+Student[][] stud_jagged = JaggedArray(total);
 
 int start = 0;
 int end = 0;
 
 start = Environment.TickCount;
-foreach (var student in stud_vector) student.group = 100;
+foreach (var student in stud_vector) student.Group = 100;
 end = Environment.TickCount;
 
 int d1_array_time = end - start;
@@ -104,7 +127,7 @@ foreach (var student in stud_matr)
 {
     for (int j = 0; j < nCols; j++)
     {
-        student.group = 100;
+        student.Group = 100;
     }
 }
 end = Environment.TickCount;
@@ -116,7 +139,7 @@ foreach(var student in stud_jagged)
 {
     for (int j = 0; j < student.Length; j++)
     {
-        student[j].group = 100;
+        student[j].Group = 100;
     }
 }
 end = Environment.TickCount;

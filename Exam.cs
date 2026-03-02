@@ -8,22 +8,22 @@ namespace lab1
 {
     public class Exam
     {
-        public string subjectName;
-        public int mark;
-        public DateTime date;
+        public string SubjectName { get; init; }
+        public int Mark { get; init; }
+        public DateTime Date { get; init; }
 
         public Exam(string subjectName, int mark, DateTime date)
         {
-            this.subjectName = subjectName;
-            this.mark = mark;
-            this.date = date;
+            SubjectName = subjectName;
+            Mark = mark;
+            Date = date;
         }
 
         public Exam() : this(subjectName: "Math", mark: 5, date: DateTime.Now) { }
 
         public override string ToString()
         {
-            return $"{subjectName}, mark: {mark}, date: {date.ToShortDateString()}";
+            return $"{SubjectName}, mark: {Mark}, date: {Date.ToShortDateString()}";
         }
     }
 }

@@ -11,7 +11,8 @@ namespace lab1
         private Person _person;
         private Education _education;
         private int _group;
-        private List<Exam> _exams;
+// Масив 
+        private Exam[] _exams;
 
         public Student(Person person, Education education, int group)
         {
@@ -22,25 +23,25 @@ namespace lab1
 
         public Student() : this(person: new Person(), education: Education.Bachelor, group: 311) { }
 
-        public Person person
+        public Person Person
         {
             get => _person;
             init => _person = value;
         }
 
-        public Education education
+        public Education Education
         {
             get => _education;
             init => _education = value;
         }
 
-        public int group
+        public int Group
         {
             get => _group;
             set => _group = value;
         }
 
-        public List<Exam> exams
+        public Exam[] Exams
         {
             get => _exams;
             init => _exams = value;
@@ -50,31 +51,37 @@ namespace lab1
         {
             get
             {
-                if (exams == null || exams.Count == 0) return 0;
+                if (Exams == null || Exams.Length == 0) return 0;
 
-                return exams.Average(exam => exam.mark);
+                return Exams.Average(exam => exam.Mark);
 
             }
         }
         
-        public bool this[Education edu]
-        {
-            get => education == edu;
-        }
+        public bool this[Education edu] => Education == edu;
+       
 
         public void AddExams(params Exam[] exams)
         {
-            if (_exams == null)
+            if (exams == null || exams.Length == 0)
             {
-                _exams = new List<Exam>();
+                return;
+            }
+            //{
+            //    _exams = new Exam[exams.Length];
+            //}
+
+            if (_exams == null || _exams.Length == 0)
+            {
+                _exams = exams;
             }
 
-            foreach (var exam in exams)
+            int currentLength = _exams.Length;
+            Array.Resize(ref _exams, currentLength + exams.Length);
+
+            for (int i = currentLength; i < _exams.Length; i++)
             {
-                if (exam != null)
-                {
-                    _exams.Add(exam);
-                }
+                _exams[i] = exams[i - currentLength];
             }
         
         }
@@ -83,13 +90,13 @@ namespace lab1
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.Append($"{person.ToString()}\n");
-            sb.Append($"{group}\n");
-            sb.Append($"{education}\n");
+            sb.Append($"{Person.ToString()}\n");
+            sb.Append($"{Group}\n");
+            sb.Append($"{Education}\n");
 
-            if ( exams != null)
+            if ( Exams != null)
             {
-                foreach (var exam in exams)
+                foreach (var exam in Exams)
                 {
                     sb.Append($"{exam.ToString()}\n");
                 }
@@ -103,8 +110,8 @@ namespace lab1
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.Append($"{person.ToString()}\n");
-            sb.Append($"{group}\n");
+            sb.Append($"{Person.ToString()}\n");
+            sb.Append($"{Group}\n");
 
             sb.Append($"{AverageMark}");
 

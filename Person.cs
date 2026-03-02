@@ -14,28 +14,30 @@ namespace lab1
 
         public Person(string name, string surname, DateTime dateBirth)
         {
-            _name = name;
-            _surname = surname;
-            _dateBirth = dateBirth;
+// =========
+            Name = name;
+            Surname = surname;
+            DateBirth = dateBirth;
         }
 
         public Person() : this(name: "kiril", surname: "Kravtsov", dateBirth: DateTime.Now)
         {
         }
 
-        public String name
+        public String Name
         {
             get => _name;
-            set => _name = value;
+            init => _name = value;
         }
 
-        public String surname
+// ========================
+        public String Surname
         {
             get => _surname;
             set => _surname = value;
         }
 
-        public DateTime dateBirth
+        public DateTime DateBirth
         {
             get => _dateBirth;
             set => _dateBirth = value;
@@ -43,12 +45,12 @@ namespace lab1
 
         public override string ToString()
         {
-            return $"{surname} {name}, {dateBirth.ToShortDateString()}";
+            return $"{Surname} {Name}, {DateBirth.ToShortDateString()}";
         }
 
         public virtual string ToShortString()
         {
-            return $"{surname} {name}";
+            return $"{Surname} {Name}";
         }
     }
 }
