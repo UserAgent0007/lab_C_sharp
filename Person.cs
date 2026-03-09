@@ -6,51 +6,89 @@ using System.Threading.Tasks;
 
 namespace lab1
 {
-    public class Person
+    public class Person : IDateAndCopy
     {
-        private String _name;
-        private String _surname;
-        private DateTime _dateBirth;
+        protected String _name;
+        protected String _surname;
+        protected DateTime _dateBirth;
 
         public Person(string name, string surname, DateTime dateBirth)
         {
-// =========
             Name = name;
             Surname = surname;
-            DateBirth = dateBirth;
+            Date = dateBirth;
         }
 
-        public Person() : this(name: "kiril", surname: "Kravtsov", dateBirth: DateTime.Now)
+        public Person() : this(name: "kiril", surname: "Kravtsov", dateBirth: new DateTime(2000, 1, 15))
         {
         }
 
+        public virtual object DeepCopy()
+        {
+            return MemberwiseClone();
+        }
+
+        public DateTime Date 
+        { 
+            get => _dateBirth; 
+            init => _dateBirth = value; 
+        }
         public String Name
         {
             get => _name;
             init => _name = value;
         }
 
-// ========================
         public String Surname
         {
             get => _surname;
             set => _surname = value;
         }
 
-        public DateTime DateBirth
-        {
-            get => _dateBirth;
-            set => _dateBirth = value;
-        }
+        //public DateTime DateBirth
+        //{
+        //    get => dateBirth;
+        //    set => dateBirth = value;
+        //}
 
         public override string ToString()
         {
-            return $"{Surname} {Name}, {DateBirth.ToShortDateString()}";
+            return $"{Surname} {Name}, {Date.ToShortDateString()}";
         }
 
         public virtual string ToShortString()
         {
             return $"{Surname} {Name}";
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+
+            if (obj is Person person)
+            {
+                return Name == person.Name && Surname == person.Surname && Date == person.Date;
+            }
+            return false;
+
+           
+        }
+
+        public static bool operator ==(Person p1, Person p2)
+        {
+            if (ReferenceEquals(p1, p2)) return true;
+            if (p1 is null || p2 is null) return false;
+            return p1.Equals(p2);
+        }
+
+        public static bool operator !=(Person p1, Person p2)
+        {
+            return !(p1 == p2);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, Surname, Date);
         }
     }
 }

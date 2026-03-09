@@ -1,149 +1,72 @@
 ﻿using lab1;
-using System.Security.Cryptography;
 
-Student[][] JaggedArray(int totalElements)
+Person p1  = new Person();
+Person p2 = new Person("Ivan", "Ivanov", new DateTime(2000, 1, 1));
+Person p3 = new Person();
+Person p4 = p1;
+
+Console.WriteLine(p1 == p2); // False
+Console.WriteLine(p1 == p3); 
+Console.WriteLine(p1 == p4);
+
+Console.WriteLine("\nHash codes");
+Console.WriteLine(p1.GetHashCode());
+Console.WriteLine(p3.GetHashCode());
+
+Student s1 = new Student(p1, Education.Bachelor, 301);
+s1.AddExams(new Exam[] {
+    new Exam("Math", 5, new DateTime(2023, 6, 1)),
+    new Exam("Physics", 4, new DateTime(2023, 6, 2)),
+    new Exam("English", 1, new DateTime(2024, 6, 2)),});
+Console.WriteLine("\nStudent:");
+Console.WriteLine(s1);
+
+Console.WriteLine("\nStudent's personality: ");
+Console.WriteLine(s1.Person);
+
+Student s1Copy = (Student)s1.DeepCopy();
+s1.Group = 311;
+
+Console.WriteLine($"\nDifferences:\n{s1Copy.Group}\n{s1.Group}");
+
+Console.WriteLine("\nErrors");
+try
 {
-    
-    int countRows = 0;
-    int currentElements = 0;
-    int right = 0;
-    int delta = 0;
-
-    while (currentElements < totalElements)
-    {
-        right += 1;
-
-        delta = 0;
-
-        for (int i = 0; i < right; i++)
-        {
-            currentElements++;
-            delta++;
-
-            if (currentElements == totalElements)
-            {
-                break;
-            }
-        }
-
-        countRows++;
-    }
-
-    Student[][] array = new Student[countRows][];
-
-    for (int i = 0; i < countRows - 1; i++)
-    {
-        array[i] = new Student[i + 1];
-
-        for (int j = 0; j < i + 1; j++)
-        {
-            array[i][j] = new Student();
-        }
-    }
-
-    if (delta != 0)
-    {
-        array[countRows - 1] = new Student[delta];
-
-        for (int i =0; i < delta; i++)
-        {
-            array[countRows - 1][i] = new Student();
-        }
-    }
-
-    return array;
-    
+    s1.Group = 700;
+}
+catch (ArgumentOutOfRangeException ex)
+{
+    Console.WriteLine(ex.Message);
 }
 
-Student st1 = new Student();
+Console.WriteLine("\nSubjects with mark Grater");
 
-Console.WriteLine(st1);
-
-Console.WriteLine(st1.ToShortString());
-
-// ===
-
-Console.WriteLine(st1[Education.Master]);
-Console.WriteLine(st1[Education.Bachelor]);
-Console.WriteLine(st1[Education.SecondEducation]);
-
-// ===
-Console.WriteLine("\n");
-Student st2 = new Student()
+foreach (var subject in s1.GetExamsByMinGrade(3))
 {
-    Education = Education.Master,
-    Exams = new Exam[] { new Exam(), new Exam(), new Exam(), new Exam() },
-    Group = 301,
-    Person = new Person()
-};
-
-Console.WriteLine(st2);
-
-// ===
-Console.WriteLine("\n");
-
-//Student st3 = new Student();
-st2.AddExams(new Exam[] { new Exam(), new Exam(), new Exam() });
-
-Console.WriteLine(st2);
-
-
-// ===
-
-var line = Console.ReadLine() ?? "";
-var parts = line.Split([' ', ',', ';', '\t'], StringSplitOptions.RemoveEmptyEntries);
-
-var nRows = int.Parse(parts[0]);
-var nCols = int.Parse(parts[1]);
-
-int total = nRows * nCols;
-
-Student[] stud_vector = new Student[total];
-Student[,] stud_matr = new Student[nRows, nCols];
-
-for (int i = 0; i < nRows; i++)
-{
-    for (int j = 0; j < nCols; j++)
-    {
-        Student student = new Student();
-        stud_vector[i * nCols + j] = student;
-        stud_matr[i, j] = student;
-    }
+    Console.WriteLine(subject);
 }
 
-Student[][] stud_jagged = JaggedArray(total);
-
-int start = 0;
-int end = 0;
-
-start = Environment.TickCount;
-foreach (var student in stud_vector) student.Group = 100;
-end = Environment.TickCount;
-
-int d1_array_time = end - start;
-
-start = Environment.TickCount;
-foreach (var student in stud_matr)
+s1.AddTests(new Test[]
 {
-    for (int j = 0; j < nCols; j++)
-    {
-        student.Group = 100;
-    }
-}
-end = Environment.TickCount;
+    new Test("Math", true, new DateTime(2023, 6, 1)),
+    new Test("Physicshasjdhas", false, new DateTime(2023, 6, 1)),
+    //new Test("English", true),
+});
 
-int d2_array_time = end - start;
-
-start = Environment.TickCount;
-foreach(var student in stud_jagged)
+Console.WriteLine("\nExams and Tests:");
+foreach (var element in s1.GetStudentEnumerator())
 {
-    for (int j = 0; j < student.Length; j++)
-    {
-        student[j].Group = 100;
-    }
+    Console.WriteLine(element);
 }
-end = Environment.TickCount;
 
-int d2Jagged_time = end - start;
+Console.WriteLine("\nPassed exams and tests:");
+foreach (var element in s1.GetPassedExamsAndTests())
+{
+    Console.WriteLine(element);
+}
 
-Console.WriteLine($"1d time = {d1_array_time}\n2d time = {d2_array_time}\n2d jagged = {d2Jagged_time}");
+Console.WriteLine("\nPassed exams with tests:");
+foreach(var element in s1.GetPassedTestsWithExam())
+{
+    Console.WriteLine(element);
+}

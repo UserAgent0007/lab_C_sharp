@@ -6,11 +6,17 @@ using System.Threading.Tasks;
 
 namespace lab1
 {
-    public class Exam
+    public class Exam : IDateAndCopy
     {
         public string SubjectName { get; init; }
         public int Mark { get; init; }
         public DateTime Date { get; init; }
+
+        public object DeepCopy()
+        {
+            //return new Exam(SubjectName, Mark, Date);
+            return MemberwiseClone();
+        }
 
         public Exam(string subjectName, int mark, DateTime date)
         {
