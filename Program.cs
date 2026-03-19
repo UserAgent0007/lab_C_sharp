@@ -98,44 +98,45 @@ var nCols = int.Parse(parts[1]);
 
 int total = nRows * nCols;
 
-Student[] stud_vector = new Student[total];
-Student[,] stud_matr = new Student[nRows, nCols];
+Student[] studVector = new Student[total];
+Student[,] studMatr = new Student[nRows, nCols];
 
 for (int i = 0; i < nRows; i++)
 {
     for (int j = 0; j < nCols; j++)
     {
-        Student student = new Student();
-        stud_vector[i * nCols + j] = student;
-        stud_matr[i, j] = student;
+        Student student1 = new Student();
+        Student student2 = new Student();
+        studVector[i * nCols + j] = student1;
+        studMatr[i, j] = student2;
     }
 }
 
-Student[][] stud_jagged = JaggedArray(total);
+Student[][] studJagged = JaggedArray(total);
 
 int start = 0;
 int end = 0;
 
 start = Environment.TickCount;
-foreach (var student in stud_vector) student.Group = 100;
+foreach (var student in studVector) student.Group = 100;
 end = Environment.TickCount;
 
-int d1_array_time = end - start;
+int d1ArrayTime = end - start;
 
 start = Environment.TickCount;
-foreach (var student in stud_matr)
+for (int i = 0; i < nRows; i++)
 {
     for (int j = 0; j < nCols; j++)
     {
-        student.Group = 100;
+        studMatr[i,j].Group = 100;
     }
 }
 end = Environment.TickCount;
 
-int d2_array_time = end - start;
+int d2ArrayTime = end - start;
 
 start = Environment.TickCount;
-foreach(var student in stud_jagged)
+foreach(var student in studJagged)
 {
     for (int j = 0; j < student.Length; j++)
     {
@@ -144,6 +145,6 @@ foreach(var student in stud_jagged)
 }
 end = Environment.TickCount;
 
-int d2Jagged_time = end - start;
+int d2JaggedTime = end - start;
 
-Console.WriteLine($"1d time = {d1_array_time}\n2d time = {d2_array_time}\n2d jagged = {d2Jagged_time}");
+Console.WriteLine($"1d time = {d1ArrayTime}\n2d time = {d2ArrayTime}\n2d jagged = {d2JaggedTime}");

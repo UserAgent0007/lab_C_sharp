@@ -16,9 +16,9 @@ namespace lab1
 
         public Student(Person person, Education education, int group)
         {
-            _person = person;
-            _education = education;
-            _group = group;      
+            Person = person;
+            Education = education;
+            Group = group;      
         }
 
         public Student() : this(person: new Person(), education: Education.Bachelor, group: 311) { }
@@ -71,17 +71,17 @@ namespace lab1
             //    _exams = new Exam[exams.Length];
             //}
 
-            if (_exams == null || _exams.Length == 0)
+            if (Exams == null || Exams.Length == 0)
             {
                 _exams = exams;
             }
 
-            int currentLength = _exams.Length;
+            int currentLength = Exams.Length;
             Array.Resize(ref _exams, currentLength + exams.Length);
 
-            for (int i = currentLength; i < _exams.Length; i++)
+            for (int i = currentLength; i < Exams.Length; i++)
             {
-                _exams[i] = exams[i - currentLength];
+                Exams[i] = exams[i - currentLength];
             }
         
         }
