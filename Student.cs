@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,18 +14,61 @@ namespace lab1
         private Education _education;
         private int _group;
 // Масив 
-        private ArrayList _exams;
-        private ArrayList _tests;
+        private List<Exam> _exams;
+        private List<Test> _tests;
+
+        private SortedList<string, Exam> _examsSortedBySubject;
+        private SortedList<string, Test> _testsSortedBySubject;
+
+        private ImmutableList<Exam> _examsImmutable = ImmutableList<Exam>.Empty;
+        private ImmutableList<Test> _testsImmutable = ImmutableList<Test>.Empty;
 
         public Student(Person person, Education education, int group)
             : base(person.Name, person.Surname, person.Date)
         {
-            //_person = person;
             Education = education;
-            Group = group;      
+            Group = group;
+            if (Exams is not null && Exams.Count > 0 || Tests is not null && Tests.Count > 0)
+            {
+                InitCollections();
+            }
         }
 
         public Student() : this(person : new Person(), education: Education.Bachelor, group: 311) { }
+
+        public void InitCollections()
+        {
+            _examsSortedBySubject = new SortedList<string, Exam>();
+            _testsSortedBySubject = new SortedList<string, Test>();
+
+            if (Exams != null)
+            {
+                foreach (var exam in Exams)
+                {
+                    ExamsSorted[exam.SubjectName] = exam;
+                }
+
+                _examsImmutable = _exams.ToImmutableList();
+            }
+
+            if (Tests != null)
+            {
+                foreach (var test in Tests)
+                {
+                    TestsSorted[test.SubjectName] = test;
+                }
+
+                _testsImmutable = _tests.ToImmutableList();
+            }
+        }
+
+        public SortedList<string, Exam> ExamsSorted => _examsSortedBySubject;
+
+        public SortedList<string, Test> TestsSorted => _testsSortedBySubject;
+
+        public ImmutableList<Exam> ExamsImmutable => _examsImmutable;
+
+        public ImmutableList<Test> TestsImmutable => _testsImmutable;
 
         public Person Person
         {
@@ -58,16 +102,38 @@ namespace lab1
             }
         }
 
-        public ArrayList Exams
+        public List<Exam> Exams
         {
             get => _exams;
             init => _exams = value;
         }
 
-        public ArrayList Tests
+        public List<Test> Tests
         {
             get=> _tests;
             init => _tests = value;
+        }
+
+        public double AverageMarkSorted
+        {
+            get
+            {
+                if (ExamsSorted is null || ExamsSorted.Count == 0)
+                    return 0;
+
+                return ExamsSorted.Values.Average(e => e.Mark);
+            }
+        }
+
+        public double AverageMarkImmutable
+        {
+            get
+            {
+                if (ExamsImmutable is null || ExamsImmutable.Count == 0)
+                    return 0;
+
+                return ExamsImmutable.Average(e => e.Mark);
+            }
         }
 
         public double AverageMark
@@ -76,7 +142,7 @@ namespace lab1
             {
                 double sum = 0;
 
-                if (Exams == null || Exams.Count == 0) return 0;
+                if (Exams is null || Exams.Count == 0) return 0;
 
                 foreach (Exam element in Exams)
                 {
@@ -97,7 +163,7 @@ namespace lab1
 
         public void AddExams(params Exam[] exams)
         {
-            if (exams == null || exams.Length == 0)
+            if (exams is null || exams.Length == 0)
             {
                 return;
             }
@@ -105,37 +171,46 @@ namespace lab1
             //    _exams = new Exam[exams.Length];
             //}
 
-            if (_exams == null || _exams.Count == 0)
+            if (Exams is null || Exams.Count == 0)
             {
                 _exams = [];
             }
+
+            _examsSortedBySubject ??= new SortedList<string, Exam>();
 
             //int currentLength = _exams.Length;
             //Array.Resize(ref _exams, currentLength + exams.Length);
 
             for (int i = 0; i < exams.Length; i++)
             {
-                _exams.Add(exams[i]);
+                Exams.Add(exams[i]);
+                ExamsSorted.Add(exams[i].SubjectName, exams[i]);
             }
-        
+
+            _examsImmutable = Exams.ToImmutableList();
+
         }
 
         public void AddTests(params Test[] tests)
         {
-            if (tests == null || tests.Length == 0)
+            if (tests is null || tests.Length == 0)
             {
                 return;
             }
 
-            if (_tests == null || _tests.Count == 0)
+            if (Tests is null || Tests.Count == 0)
             {
                 _tests = [];
             }
-            
+
+            _testsSortedBySubject ??= new SortedList<string, Test>();
+
             for (int i = 0; i < tests.Length; i++)
             {              
-                _tests.Add(tests[i]);
+                Tests.Add(tests[i]);
+                TestsSorted.Add(tests[i].SubjectName, tests[i]);
             }
+            _testsImmutable = _tests.ToImmutableList();
         }
         public override string ToString()
         {
@@ -168,12 +243,14 @@ namespace lab1
 
         public override string ToShortString()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             sb.Append($"{Person.ToString()}\n");
             sb.Append($"{Group}\n");
             sb.Append($"{Education}\n");
             sb.Append($"{AverageMark}");
+            sb.Append($"\nExams count: {Exams?.Count ?? 0}\n");
+            sb.Append($"Tests count: {Tests?.Count ?? 0}");
 
             return sb.ToString();
         }
@@ -184,7 +261,7 @@ namespace lab1
             {
                 Exams = [],
                 Tests = [],
-                Person = this.Person,
+                Person = (Person) this.Person.DeepCopy(),
                 Group = this.Group,
                 Education = this.Education
             };
@@ -192,16 +269,17 @@ namespace lab1
             {
                 foreach(Exam elem in Exams)
                 {
-                    copy.Exams.Add(elem.DeepCopy());
+                    copy.Exams.Add((Exam)elem.DeepCopy());
                 }                
             }
             if (Tests != null)
             {
                 foreach (Test elem in Tests)
                 {
-                    copy.Tests.Add(elem.DeepCopy());
+                    copy.Tests.Add((Test)elem.DeepCopy());
                 }
             }
+            copy.InitCollections();
             return copy;
         }
 
@@ -235,13 +313,13 @@ namespace lab1
 
         public IEnumerable GetPassedExamsAndTests()
         {
-            foreach (Test test in _tests)
+            foreach (Test test in Tests)
             {
                 if (test.IsPassed) 
                     yield return test;
             }
 
-            foreach (Exam exam in _exams)
+            foreach (Exam exam in Exams)
             {
                 if (exam.Mark > 2) 
                     yield return exam;
@@ -250,12 +328,12 @@ namespace lab1
 
         public IEnumerable GetPassedTestsWithExam()
         {
-            foreach (Test test in _tests)
+            foreach (Test test in Tests)
             {
                 if (!test.IsPassed) continue; 
 
                 
-                foreach (Exam exam in _exams)
+                foreach (Exam exam in Exams)
                 {
                     if (exam.SubjectName == test.SubjectName && exam.Mark > 2)
                     {

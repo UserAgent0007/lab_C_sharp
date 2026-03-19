@@ -11,7 +11,7 @@ namespace lab1
         private ArrayList _subjects;
         private int _index = -1;
 
-        public StudentEnumerator(ArrayList tests, ArrayList exams)
+        public StudentEnumerator(List<Test> tests, List<Exam> exams)
         {
             _subjects = new ArrayList();
 

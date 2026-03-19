@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace lab1
 {
-    public class Person : IDateAndCopy
+    public class Person : IDateAndCopy, IComparable, IComparer<Person>
     {
         protected String _name;
         protected String _surname;
@@ -21,6 +21,25 @@ namespace lab1
 
         public Person() : this(name: "kiril", surname: "Kravtsov", dateBirth: new DateTime(2000, 1, 15))
         {
+        }
+
+        public int Compare(Person? x, Person? y)
+        {
+            if (x is null || y is null) return 0;
+
+            return x.Date.CompareTo(y.Date);
+        }
+
+        public int CompareTo(object? obj)
+        {
+            if (obj is null) return 1;
+            if (obj is Person person)
+            {
+                int surnameComparison = string.Compare(Surname, person.Surname, StringComparison.Ordinal);
+                if (surnameComparison != 0) return surnameComparison;
+                return 0;
+            }
+            throw new ArgumentException("Object is not a Person");
         }
 
         public virtual object DeepCopy()
