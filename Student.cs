@@ -83,7 +83,7 @@ namespace lab1
         public Education Education
         {
             get => _education;
-            init => _education = value;
+            set => _education = value;
         }
 
         public int Group

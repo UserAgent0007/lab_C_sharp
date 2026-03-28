@@ -1,184 +1,45 @@
-﻿using System;
+﻿using lab1;
+using lab1.Event;
+using lab1.Сomparers;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
-using lab1;
-using lab1.Сomparers;
 
 namespace lab1.Collections
 {
+    public delegate void StudentListHandler(object source, StudentListHandlerEventArgs args);
     internal class StudentCollection
     {
+        public string CollectionName { get; set; } = "StudentCollection";
+        public event StudentListHandler StudentCountChanged;
+        public event StudentListHandler StudentReferenceChanged;
+
         private List<Student>? _studentList;
-        private SortedList<Person, Student> _studentsSorted;
-        private SortedList<Person, Student> _studentsSortedByDate;
-        private SortedList<Student, Student> _studentsSortedByAverageMark;
-
-        private ImmutableList<Student> _studentsImmutable;
-
         public List<Student> StudentList { get => _studentList ?? []; }
-
-        public ImmutableList<Student> StudentIm
-        {
-            get => _studentsImmutable ?? ImmutableList<Student>.Empty;
-
-        }
-
-        public SortedList<Person, Student> StudentsSortedByDate
-        {
-            get => _studentsSortedByDate;
-        }
-
-        public SortedList<Student, Student> StudentsSortedByAverageMark
-        {
-            get => _studentsSortedByAverageMark;
-        }
-
-        public SortedList<Person, Student> DefaultSortedList
-        {
-            get => _studentsSorted;
-        }
-
-        public void SetStudentImAsOrig()
-        {
-            if (StudentList is null)
-            {
-                _studentsImmutable = ImmutableList<Student>.Empty;
-                
-            }
-            else
-            {
-                _studentsImmutable = StudentList.Where(s => s is not null).ToImmutableList();
-            }
-            
-        }
-
+       
         public void AddDefaults()
         {
-            _studentList ??= [];
-
-            _studentsSorted ??= [];
-            _studentsSortedByDate ??= new SortedList<Person, Student>(new Person());
-            _studentsSortedByAverageMark ??= new SortedList<Student, Student>(new StudentAverageMarkComparer());
-
+            _studentList ??= [];           
             Student st1 = new Student();
             Student st2 = new Student();
 
             StudentList.Add(st1);
             StudentList.Add(st2);
-
-            DefaultSortedList.Add(st1.Person, st1);
-            DefaultSortedList.Add(st2.Person, st2);
-
-            StudentsSortedByDate.Add(st1.Person, st1);
-            StudentsSortedByDate.Add(st2.Person, st2);
-
-            StudentsSortedByAverageMark.Add(st1, st1);
-            StudentsSortedByAverageMark.Add(st2, st2);
-
-            SetStudentImAsOrig();
+            OnStudentCountChanged(new StudentListHandlerEventArgs(CollectionName, "Added new Student", st1));
+            OnStudentCountChanged(new StudentListHandlerEventArgs(CollectionName, "Added new Student", st2));
         }
 
         public void AddStudents(params Student[] students)
         {
             _studentList ??= [];
-
-            _studentsSorted ??= [];
-            _studentsSortedByDate ??= new SortedList<Person, Student>(new Person());
-            _studentsSortedByAverageMark ??= new SortedList<Student, Student>(new StudentAverageMarkComparer());
-
             StudentList.AddRange(students.Where(s=> s is not null));
 
             foreach (Student st in students.Where(s => s is not null))
             {
-                DefaultSortedList.Add(st.Person, st);
-                StudentsSortedByDate.Add(st.Person, st);
-                StudentsSortedByAverageMark.Add(st, st);               
+                OnStudentCountChanged(new StudentListHandlerEventArgs(CollectionName, "Added new Student", st));
             }
-
-            SetStudentImAsOrig();
-        }
-
-        public string ToStringSotedLists()
-        {
-            StringBuilder sb = new();
-            sb.AppendLine("StudentCollections Sorted By Default:\n");
-
-            foreach (Student st in DefaultSortedList.Values ?? [])
-            {
-                sb.AppendLine(st.ToString());
-                sb.AppendLine();
-            }
-
-            sb.AppendLine("\nStudentCollections Sorted By Date:\n");
-            foreach (Student st in StudentsSortedByDate.Values ?? [])
-            {
-                sb.AppendLine(st.ToString());
-                sb.AppendLine();
-            }
-            sb.AppendLine("\nStudentCollections Sorted By AverageMark:\n");
-            foreach (Student st in StudentsSortedByAverageMark.Values ?? [])
-            {
-                sb.AppendLine(st.ToString());
-                sb.AppendLine();
-            }
-
-            return sb.ToString();
-        }
-
-        public string ToShortStringSorted()
-        {
-            StringBuilder sb = new();
-            sb.AppendLine("StudentCollections Sorted By Default:\n");
-
-            foreach (Student st in DefaultSortedList.Values ?? [])
-            {
-                sb.AppendLine(st.ToShortString());
-                sb.AppendLine();
-            }
-
-            sb.AppendLine("\nStudentCollections Sorted By Date:\n");
-            foreach (Student st in StudentsSortedByDate.Values ?? [])
-            {
-                sb.AppendLine(st.ToShortString());
-                sb.AppendLine();
-            }
-            sb.AppendLine("\nStudentCollections Sorted By AverageMark:\n");
-            foreach (Student st in StudentsSortedByAverageMark.Values ?? [])
-            {
-                sb.AppendLine(st.ToShortString());
-                sb.AppendLine();
-            }
-
-            return sb.ToString();
-        }
-
-        public string ToStringImmutable()
-        {
-            StringBuilder sb = new();
-            sb.AppendLine("StudentCollection Immutable:\n");
-
-            foreach (Student st in StudentIm ?? [])
-            {
-                sb.AppendLine(st.ToString());
-                sb.AppendLine();
-            }
-
-            return sb.ToString();
-        }
-
-        public string ToShortStringImmutable()
-        {
-            StringBuilder sb = new();
-            sb.AppendLine("StudentCollection Immutable:\n");
-
-            foreach (Student st in StudentIm ?? [])
-            {
-                sb.AppendLine(st.ToShortString());
-                sb.AppendLine();
-            }
-
-            return sb.ToString();
+                   
         }
 
         public override string ToString()
@@ -212,18 +73,14 @@ namespace lab1.Collections
         public void SortBySurname() 
         { 
             StudentList?.Sort();
-            _studentsImmutable = _studentsImmutable.Sort();
         }
         public void SortByDate()
         { 
             StudentList?.Sort(new Person());
-            _studentsImmutable = _studentsImmutable.Sort(new Person());
         }
-
         public void SortByAverageMark()
         {
             StudentList?.Sort(new StudentAverageMarkComparer());
-            _studentsImmutable = _studentsImmutable.Sort(new StudentAverageMarkComparer());
         }
 
 
@@ -237,29 +94,6 @@ namespace lab1.Collections
                 .SelectMany(g => g)
                 .ToList();
         }
-
-        public double MaxAverageMarkSorted { get => DefaultSortedList?.Values.Select(s => s.AverageMark).DefaultIfEmpty().Max() ?? 0; }
-        public IEnumerable<Student> EducationMasterSorted { get => DefaultSortedList.Values.Where(st => st.Education == Education.Master); }
-        public List<Student> AverageMarkGroupSorted (double value)
-        {
-            return DefaultSortedList.Values
-                .GroupBy(s => s.AverageMark)
-                .Where(g => g.Key == value)
-                .SelectMany(g => g)
-                .ToList();
-        }
-
-        public double MaxAverageMarkImmutable { get => StudentIm?.Select(s => s.AverageMark).DefaultIfEmpty().Max() ?? 0; }
-        public IEnumerable<Student> EducationMasterImmutable { get => StudentIm.Where(st => st.Education == Education.Master); }
-        public List<Student> AverageMarkGroupImmutable(double value)
-        {
-            return StudentIm
-                .GroupBy(s => s.AverageMark)
-                .Where(g => g.Key == value)
-                .SelectMany(g => g)
-                .ToList();
-        }
-
         public void AvarageMarkGroupPrint()
         {
             var groups = StudentList.GroupBy(s => s.AverageMark);
@@ -276,5 +110,45 @@ namespace lab1.Collections
                 Console.WriteLine();
             }
         }
+
+        public bool Remove(int j)
+        {
+            if (j < 0 || j >= StudentList.Count)
+            {
+                return false;
+            }
+            Student st = StudentList[j];
+            StudentList.RemoveAt(j);
+            OnStudentCountChanged(new StudentListHandlerEventArgs(CollectionName, $"Removed {j} student", st));
+            return true;
+        }
+
+        public Student this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= StudentList.Count)
+                {
+                    throw new ArgumentOutOfRangeException("Index is out of range");
+                }
+                Student student = StudentList[index];
+                return student;
+            }
+            set
+            {
+                if (index >= 0 && index < StudentList.Count)
+                {
+                    StudentList[index] = value;
+                    OnStudentReferenceChanged(new StudentListHandlerEventArgs(CollectionName, $"New reference. {index} student", value));
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException("Index does not exists");
+                }
+            }
+        }
+
+        protected virtual void OnStudentCountChanged(StudentListHandlerEventArgs e) => StudentCountChanged?.Invoke(this, e);
+        protected virtual void OnStudentReferenceChanged(StudentListHandlerEventArgs e) => StudentReferenceChanged?.Invoke(this, e);
     }
 }
