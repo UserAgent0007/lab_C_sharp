@@ -3,11 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace lab1
-{
+{ 
     public class Student : Person
     {
         //private Person _person;
@@ -62,13 +64,13 @@ namespace lab1
             }
         }
 
-        public SortedList<string, Exam> ExamsSorted => _examsSortedBySubject;
+        public SortedList<string, Exam> ExamsSorted { get => _examsSortedBySubject; private set => _examsSortedBySubject = value; }
 
-        public SortedList<string, Test> TestsSorted => _testsSortedBySubject;
+        public SortedList<string, Test> TestsSorted { get => _testsSortedBySubject; private set => _testsSortedBySubject = value; }
 
-        public ImmutableList<Exam> ExamsImmutable => _examsImmutable;
+        public ImmutableList<Exam> ExamsImmutable { get => _examsImmutable; private set => _examsImmutable = value; }
 
-        public ImmutableList<Test> TestsImmutable => _testsImmutable;
+        public ImmutableList<Test> TestsImmutable { get => _testsImmutable; private set => _testsImmutable = value; }
 
         public Person Person
         {
@@ -257,30 +259,127 @@ namespace lab1
 // Поелементно зробити копії
         public override object DeepCopy()
         {
-            Student copy = new()
+            using MemoryStream ms = new();
+            JsonSerializer.Serialize(ms, this);
+            ms.Position = 0;
+            return JsonSerializer.Deserialize<Student>(ms)!;
+        }
+
+        public bool Save(string filename)
+        {
+            FileStream? fs = null;
+            try
             {
-                Exams = [],
-                Tests = [],
-                Person = (Person) this.Person.DeepCopy(),
-                Group = this.Group,
-                Education = this.Education
-            };
-            if (Exams != null)
-            {
-                foreach(Exam elem in Exams)
-                {
-                    copy.Exams.Add((Exam)elem.DeepCopy());
-                }                
+                fs = new FileStream("../../../SerializedObjects/" + filename, FileMode.Create);
+                JsonSerializer.Serialize(fs, this); // напряму у FileStream
+                return true;
             }
-            if (Tests != null)
+            catch (UnauthorizedAccessException) { return false; }  // немає прав на читання
+            catch (IOException) { return false; }  // файл зайнятий іншим процесом
+            catch (JsonException) { return false; }  // файл пошкоджений або невірний формат
+            catch (Exception) { return false; }            
+            finally
             {
-                foreach (Test elem in Tests)
+                fs?.Dispose();
+            }
+        }
+
+        public bool Load(string filename)
+        {
+            FileStream fs = null;
+
+            //Person savedPerson = this.Person;
+            //int savedGroup = this.Group;
+            //Education savedEducation = this.Education;
+            //List<Exam> savedExams = this.Exams;
+            //List<Test> savedTests = this.Tests;
+
+            try
+            {
+                fs = new FileStream("../../../SerializedObjects/" + filename, FileMode.Open);
+                Student temp = JsonSerializer.Deserialize<Student>(fs)!;
+                //Person savedPerson = temp.Person;
+                //int savedGroup = temp.Group;
+                //Education savedEducation = temp.Education;
+                //List<Exam> savedExams = temp.Exams;
+                //List<Test> savedTests = temp.Tests;
+
+                if (temp is null || temp.Person is null || temp.Group <= 100 || temp.Group > 699)
                 {
-                    copy.Tests.Add((Test)elem.DeepCopy());
+                    return false;
                 }
+
+                _name = temp.Name;
+                _surname = temp.Surname;
+                _dateBirth = temp.Date;
+                Group = temp.Group;
+                Education = temp.Education;
+                _exams = temp.Exams;         
+                _tests = temp.Tests;
+
+                InitCollections();
+
+                return true;
             }
-            copy.InitCollections();
-            return copy;
+            catch (FileNotFoundException) 
+            { 
+                return false; 
+            }  // файл не існує
+            catch (UnauthorizedAccessException) { return false; }  // немає прав на читання
+            catch (IOException) { return false; }  // файл зайнятий іншим процесом
+            catch (JsonException) { return false; }  // файл пошкоджений або невірний формат
+            catch (Exception) { return false; }
+            finally
+            {
+                fs?.Dispose();
+            }
+        }
+
+        public static bool Save(string filename, Student obj)
+        {
+            return obj.Save(filename);
+        }
+
+        public static bool Load(string filename, Student obj)
+        {
+            return obj.Load(filename);
+        }
+
+        public bool AddFromConsole()
+        {
+            Console.WriteLine("Введіть дані екзамену у форматі:");
+            Console.WriteLine("Назва предмету / Оцінка / Дата (дд.мм.рррр)");
+            Console.WriteLine("Розділювачі: '/' або ',' або ';'");
+            Console.Write(">>> ");
+
+            string input = Console.ReadLine() ?? "";
+
+            try
+            {
+
+                string[] parts = input.Split(new char[] { '/', ',', ';' },
+                                             StringSplitOptions.TrimEntries);
+
+                if (parts.Length != 3)
+                    throw new FormatException("Невірна кількість елементів.");
+
+                string subject = parts[0];
+                int grade = int.Parse(parts[1]);
+                DateTime date = DateTime.Parse(parts[2]);
+
+                Exams.Add(new Exam(subject, grade, date));
+                return true;
+            }
+            catch (FormatException ex)
+            {
+                Console.WriteLine($"Помилка формату: {ex.Message}");
+                return false;
+            }
+            catch (OverflowException)
+            {
+                Console.WriteLine("Помилка: значення оцінки виходить за межі допустимого діапазону.");
+                return false;
+            }
         }
 
         public IEnumerable GetAllElements()
